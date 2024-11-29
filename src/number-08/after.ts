@@ -1,4 +1,4 @@
-// Code Smell: Duplicate Code | Before
+// Code Smell: Duplicate Code | After
 
 import { showErrorToast } from "../demo-purpose/services/toast.service";
 
