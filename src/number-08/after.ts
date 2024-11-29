@@ -1,38 +1,58 @@
-// Code Smell: Divergent Change | After
+// Code Smell: Duplicate Code | Before
 
-export class Toaster {
-  public static SUCCESS: Variant = {
-    label: "Success",
-    datasetType: "success",
-    logMethod: console.info,
+import { showErrorToast } from "../demo-purpose/services/toast.service";
+
+export class ApiService {
+  private readonly DEFAULT_POST_REQUEST_INIT: RequestInit = {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
   };
 
-  public static WARNING: Variant = {
-    label: "Warning",
-    datasetType: "warning",
-    logMethod: console.warn,
+  private readonly DEFAULT_DELETE_REQUEST_INIT: RequestInit = {
+    method: "DELETE",
+    headers: { "Content-Type": "application/json" },
   };
 
-  public static ERROR: Variant = {
-    label: "Error",
-    datasetType: "error",
-    logMethod: console.error,
-  };
-
-  private get toastElement(): HTMLElement {
-    return document.querySelector("#toast-container")!;
+  private async getRequest<T>(
+    url: string,
+    init: RequestInit,
+  ): Promise<T | null> {
+    return this.fetchRequest(url, init);
   }
 
-  public show(message: string, variant: Variant): void {
-    this.toastElement.innerHTML = `${variant.label}: ${message};`;
-    this.toastElement.dataset.type = variant.datasetType;
-
-    variant.logMethod(`[TOAST] ${message}`);
+  private async postRequest<T>(
+    url: string,
+    init: RequestInit,
+  ): Promise<T | null> {
+    return this.fetchRequest(url, {
+      ...this.DEFAULT_POST_REQUEST_INIT,
+      ...init,
+    });
   }
-}
 
-interface Variant {
-  label: string;
-  datasetType: string;
-  logMethod: (message: string) => unknown;
+  private async deleteRequest<T>(
+    url: string,
+    init: RequestInit,
+  ): Promise<T | null> {
+    return this.fetchRequest(url, {
+      ...this.DEFAULT_DELETE_REQUEST_INIT,
+      ...init,
+    });
+  }
+
+  private async fetchRequest<T>(
+    url: string,
+    init: RequestInit,
+  ): Promise<T | null> {
+    const response = await fetch(url, init);
+    const data = await response.json();
+
+    if (!response.ok) {
+      showErrorToast(data.message);
+
+      return null;
+    }
+
+    return data as T;
+  }
 }

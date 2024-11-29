@@ -1,28 +1,71 @@
-// Code Smell: Divergent Change | Before
+// Code Smell: Duplicate Code | Before
 
-export class Toaster {
-  private get toastElement(): HTMLElement {
-    return document.querySelector("#toast-container")!;
+import { showErrorToast } from "../demo-purpose/services/toast.service";
+
+export class ApiService {
+  private readonly DEFAULT_POST_REQUEST_INIT: RequestInit = {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+  };
+
+  private readonly DEFAULT_DELETE_REQUEST_INIT: RequestInit = {
+    method: "DELETE",
+    headers: { "Content-Type": "application/json" },
+  };
+
+  private async getRequest<T>(
+    url: string,
+    init?: RequestInit,
+  ): Promise<T | null> {
+    const response = await fetch(url, init);
+    const data = await response.json();
+
+    if (!response.ok) {
+      showErrorToast(data.message);
+
+      return null;
+    }
+
+    return data as T;
   }
 
-  public showSuccess(message: string): void {
-    this.toastElement.innerHTML = `Success: ${message};`;
-    this.toastElement.dataset.type = "success";
+  private async postRequest<T>(
+    url: string,
+    init?: RequestInit,
+  ): Promise<T | null> {
+    const response = await fetch(url, {
+      ...this.DEFAULT_POST_REQUEST_INIT,
+      ...init,
+    });
 
-    console.info(`[TOAST] ${message}`);
+    const data = await response.json();
+
+    if (!response.ok) {
+      showErrorToast(data.message);
+
+      return null;
+    }
+
+    return data as T;
   }
 
-  public showWarning(message: string): void {
-    this.toastElement.innerHTML = `Warning: ${message};`;
-    this.toastElement.dataset.type = "warning";
+  private async deleteRequest<T>(
+    url: string,
+    init?: RequestInit,
+  ): Promise<T | null> {
+    const response = await fetch(url, {
+      ...this.DEFAULT_DELETE_REQUEST_INIT,
+      ...init,
+    });
 
-    console.warn(`[TOAST] ${message}`);
-  }
+    const data = await response.json();
 
-  public showError(message: string): void {
-    this.toastElement.innerHTML = `Error: ${message};`;
-    this.toastElement.dataset.type = "error";
+    if (!response.ok) {
+      showErrorToast(data.message);
 
-    console.error(`[TOAST] ${message}`);
+      return null;
+    }
+
+    return data as T;
   }
 }
