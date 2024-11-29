@@ -1,23 +1,15 @@
 // Code Smell: Long Method | Before
-import { TaskModel } from "../demo-purpose/models/task.model";
+import { UserModel } from "../demo-purpose/models/user.model";
+import { showErrorToast } from "../demo-purpose/services/toast.service";
 
-function appendTaskToList(task: TaskModel): void {
-  const listElement = document.querySelector("#tasks")!;
-
-  const taskElement = document.createElement("li");
-  taskElement.innerHTML = `
-    <li>
-      <label>
-        <input type="checkbox" checked="${task.isDone}" />
-        <div class="title">${task.title}</div>
-      </label>
-    </li>
-  `;
-
-  const inputElement = taskElement.querySelector("input")!;
-  inputElement.addEventListener("change", () => {
-    task.isDone = inputElement.checked;
-  });
-
-  listElement.append(taskElement);
+async function fetchUserAndGenerateDetails(id: string): Promise<string | null> {
+  const response = await fetch(`https://api.com/user/${id}`);
+  if (!response.ok) {
+    showErrorToast(`Cannot fetch user with id of ${id}.`);
+    return null;
+  }
+  const user: UserModel = await response.json();
+  const fullName = `${user.firstName} ${user.lastName}`;
+  const address = `${user.address.street}, ${user.address.city}, ${user.address.zip}`;
+  return `Name: ${fullName}, Address: ${address}`;
 }

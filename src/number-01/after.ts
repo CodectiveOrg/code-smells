@@ -1,41 +1,29 @@
 // Code Smell: Long Method | After
-import { TaskModel } from "../demo-purpose/models/task.model";
+import { UserModel } from "../demo-purpose/models/user.model";
+import { showErrorToast } from "../demo-purpose/services/toast.service";
 
-function appendTaskToList(task: TaskModel): void {
-  const listElement = document.querySelector("#tasks")!;
+async function fetchUserAndGenerateDetails(id: string): Promise<string | null> {
+  const user = await fetchUser(id);
+  if (!user) {
+    return null;
+  }
 
-  const taskElement = createTaskElement(task);
-
-  listElement.append(taskElement);
+  return generateUserDetails(user);
 }
 
-function createTaskElement(task: TaskModel): HTMLLIElement {
-  const taskElement = document.createElement("li");
-  taskElement.innerHTML = generateTaskElementInnerHTML(task);
+async function fetchUser(id: string): Promise<UserModel | null> {
+  const response = await fetch(`https://api.com/user/${id}`);
 
-  addInputEventListeners(task, taskElement);
+  if (!response.ok) {
+    showErrorToast(`Cannot fetch user with id of ${id}.`);
+    return null;
+  }
 
-  return taskElement;
+  return await response.json();
 }
 
-function generateTaskElementInnerHTML(task: TaskModel): string {
-  return `
-    <li>
-      <label>
-        <input type="checkbox" checked="${task.isDone}" />
-        <div class="title">${task.title}</div>
-      </label>
-    </li>
-  `;
-}
-
-function addInputEventListeners(
-  task: TaskModel,
-  taskElement: HTMLLIElement,
-): void {
-  const inputElement = taskElement.querySelector("input")!;
-
-  inputElement.addEventListener("change", () => {
-    task.isDone = inputElement.checked;
-  });
+function generateUserDetails(user: UserModel): string {
+  const fullName = `${user.firstName} ${user.lastName}`;
+  const address = `${user.address.street}, ${user.address.city}, ${user.address.zip}`;
+  return `Name: ${fullName}, Address: ${address}`;
 }
